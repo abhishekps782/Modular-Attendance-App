@@ -87,13 +87,13 @@ var viewModel = {
        return model.students;
      },
 
-     updateAbsenceCount : function(arrIndex, daysIndex, checked){
+     updateAbsenceCount : function(arrIndex, daysIndex, checked, absenceCountEle){
         /* adjusting for array index */
         var indexArr = arrIndex - 1;
         var daysIndex = daysIndex -1;
         var absenceCount;
         model.updateAbsenceCount(indexArr, daysIndex, checked);
-        view.updateAbsenceCountEle('missedCol'+ arrIndex, model.students[indexArr].absenceCount);
+        view.updateAbsenceCountEle(absenceCountEle, model.students[indexArr].absenceCount);
         model.saveAttendance();
      },
 
@@ -107,9 +107,12 @@ var view = {
        this.tbodyEle = $('#studentsAttendanceGrid');
        this.headerEle = $('thead');
        this.tbodyEle.on('click','input',function(e){
-         var studentIndex = parseInt($(e.target).parents('tr').attr('id'));
-         var daysIndex = parseInt($(e.target).attr('id').replace('day',''));
-         viewModel.updateAbsenceCount(studentIndex, daysIndex, e.target.checked);
+         var selectedChkBoxEle = $(e.target);
+         var isChecked = selectedChkBoxEle.prop('checked');
+         var studentIndex = parseInt(selectedChkBoxEle.parents('tr').attr('id'));
+         var daysIndex = parseInt(selectedChkBoxEle.attr('id').replace('day',''));
+         var absenceCountEle = selectedChkBoxEle.parents('tr').find('.missed-col');
+         viewModel.updateAbsenceCount(studentIndex, daysIndex, isChecked, absenceCountEle);
        });
        this.render();
      },
@@ -141,7 +144,7 @@ var view = {
        var numOfSchoolDays = viewModel.getNumOfSchoolDays();
        students.forEach(function(student,index){
           var $tr = $('<tr id="'+(index+1)+'"></tr>')
-          $tr.append($('<td>"'+student.name+'"</td>'))
+          $tr.append($('<td>'+student.name+'</td>'))
           /* append checkboxes */
           for (var i = 0; i< numOfSchoolDays; i++) {
             var $td = $('<td><input id="day'+(i+1)+'" type="checkbox"></td>');
@@ -149,13 +152,13 @@ var view = {
             $tr.append($td);
           }
 
-          $tr.append('<td id="missedCol'+(index+1)+'">'+student.absenceCount+'</td>');
+          $tr.append('<td class="missed-col">'+student.absenceCount+'</td>');
           self.tbodyEle.append($tr);
        });
      },
 
-     updateAbsenceCountEle: function(id, absenceCount){
-        $('#'+ id).text(absenceCount);
+     updateAbsenceCountEle: function(ele, absenceCount){
+        ele.text(absenceCount);
      },
 
      updateCheckBox: function(){
